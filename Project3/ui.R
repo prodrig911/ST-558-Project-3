@@ -4,8 +4,10 @@
 ## 7-17-2019
 
 library(shiny)
+library(tidyverse)
+library(DT)
 
-nba <- read_csv("C:/Users/Phillip/Desktop/ST 558/Projects/ST 558 Project 3/Project3/2018-2019 NBA.csv")
+nba <- read_csv("2018-2019 NBA.csv")
 
 ui <- fluidPage(
   

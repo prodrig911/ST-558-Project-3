@@ -26,7 +26,7 @@ library(DT)
 # nba$Conference <- as.factor(nba$Conference)
 # nba <- nba[,-1]
 # nba <- nba[,-2]
-nba <- read_csv("C:/Users/Phillip/Desktop/ST 558/Projects/ST 558 Project 3/Project3/2018-2019 NBA.csv")
+nba <- read_csv("2018-2019 NBA.csv")
 
 server <- function(input, output) {
     
