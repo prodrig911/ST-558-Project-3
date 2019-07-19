@@ -5,8 +5,11 @@
 
 library(shiny)
 
+nba <- read_csv("C:/Users/Phillip/Desktop/ST 558/Projects/ST 558 Project 3/Project3/2018-2019 NBA.csv")
+
 ui <- fluidPage(
-    
+  
+  
     titlePanel("ST 558 Project 3"),
     
     sidebarLayout(
@@ -20,7 +23,11 @@ ui <- fluidPage(
             
             conditionalPanel(condition = "input.tabs == '3'",
                              conditionalPanel("input.tabs2 == '1'",
-                             downloadButton("download2", "Save Histogram"))),
+                                              selectInput("var", "Variable", 
+                                                          choices = names(nba[sapply(nba, is.numeric)])),
+                                              sliderInput("bins", "Number of Bins", min = 4, 
+                                                          max = 30, value = 13),
+                                              downloadButton("download2", "Save Histogram"))),
             
             conditionalPanel(condition = "input.tabs == '4'",
                              selectInput("team", "Team", choices = nba$Team),

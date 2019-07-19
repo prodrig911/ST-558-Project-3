@@ -7,28 +7,32 @@ library(shiny)
 library(tidyverse)
 library(DT)
 
+# bbStats <- read_csv("2018-2019 NBA.csv")
+# nba <- bbStats[-31,]
+# playoff <- data.frame(Playoff = ifelse(substring(nba$Team, 
+#                                                  nchar(nba$Team)) == "*", "Y", "N"))
+# 
+# conference <- matrix(c("E", "W", "W", "E", "W", "W", "W", "E", "W",
+#                        "E", "W", "E", "W", "E", "E", "W", "W", "W", 
+#                        "E", "W", "W", "E", "W", "E", "E", "E", "E", 
+#                        "E", "E", "W"), nrow = 30, ncol = 1)
+# 
+# colnames(conference) <- "Conference"
+# nba <- tbl_df(cbind(nba, playoff, conference))
+# nba$Team <- str_replace_all(nba$Team, "[[*]]", "")
+# 
+# # nba$Team <- as.factor(nba$Team)
+# nba$Playoff <- as.factor(nba$Playoff)
+# nba$Conference <- as.factor(nba$Conference)
+# nba <- nba[,-1]
+# nba <- nba[,-2]
+nba <- read_csv("C:/Users/Phillip/Desktop/ST 558/Projects/ST 558 Project 3/Project3/2018-2019 NBA.csv")
+
 server <- function(input, output) {
     
-    bbStats <- read_csv("C:/Users/Phillip/Desktop/ST 558/2018-2019 NBA.csv")
-    nba <- bbStats[-31,]
-    playoff <- data.frame(Playoff = ifelse(substring(nba$Team, 
-                                                     nchar(nba$Team)) == "*", "Y", "N"))
-    
-    conference <- matrix(c("E", "W", "W", "E", "W", "W", "W", "E", "W",
-                         "E", "W", "E", "W", "E", "E", "W", "W", "W", 
-                         "E", "W", "W", "E", "W", "E", "E", "E", "E", 
-                         "E", "E", "W"), nrow = 30, ncol = 1)
-    
-    colnames(conference) <- "Conference"
-    nba <- tbl_df(cbind(nba, playoff, conference))
-    nba$Team <- str_replace_all(nba$Team, "[[*]]", "")
-    
-    # nba$Team <- as.factor(nba$Team)
-    nba$Playoff <- as.factor(nba$Playoff)
-    nba$Conference <- as.factor(nba$Conference)
     
     getData <- reactive({
-        
+      
         team <- nba %>% 
                 select(Team,`FG%`,`3P`,`3P%`,`2P`,`2P%`,FT,`FT%`,ORB,
                        DRB,AST,STL,BLK,TOV,PTS) %>% 
@@ -36,7 +40,7 @@ server <- function(input, output) {
     })
     
     output$table1 <- renderDataTable({
-        
+      
         nba %>% select(Team,`FG%`,`3P`,`3P%`,`2P`,`2P%`,FT,`FT%`,ORB,
                        DRB,AST,STL,BLK,TOV,PTS)
     })
@@ -48,9 +52,22 @@ server <- function(input, output) {
     
     output$hist <- renderPlot({
         
-        hist(nba$PTS, main = "Histogram of Points", xlab = "Points",
-             col = "cornflowerblue")
+        a <- input$var
+        b <- pull(nba,a)
+        bins <- seq(min(b),max(b),length.out = input$bins + 1)
         
+        hist(b, main = paste0("Histogram of ", a), xlab = a,
+             col = "cornflowerblue", breaks = bins)
+    })
+    
+    p <- reactive({
+        
+        a <- input$var
+        b <- pull(nba,a)
+        bins <- seq(min(b),max(b),length.out = input$bins + 1)
+        
+        hist(b, main = paste0("Histogram of ", a), xlab = a,
+             col = "cornflowerblue", breaks = input$bins)
     })
     
     output$download1 <- downloadHandler(
@@ -78,6 +95,7 @@ server <- function(input, output) {
         content = function(file){
             
             png(file)
+            p()
             dev.off()
         }
         
