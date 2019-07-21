@@ -11,6 +11,7 @@ library(class)
 
 # nba <- read_csv("C:/Users/Phillip/Desktop/NBA/2018-2019 NBA.csv")
 nba2 <- read_csv("NBA.csv")
+nba2$Playoff <- as.factor(nba2$Playoff)
 
 server <- function(input, output) {
     
@@ -170,6 +171,25 @@ server <- function(input, output) {
       }
       
     )
+    
+    # output$model <- renderPrint({
+    #   
+    #   train <- nba2 %>% sample_frac(0.80)
+    #   test <- anti_join(nba2, train)
+    #   
+    #   trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+    #   
+    #   knn_fit <- train(Playoff ~ FG + FGA + `FG%` + `3P` + `3PA` + `2PA` + `2P%` + FT + FTA + `FT%` +
+    #                      ORB + DRB + TRB + AST + STL + BLK + TOV + PF + PTS, data = nba2, method = "knn",
+    #                    trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
+    #   knn_fit
+    #   
+    #   test_pred <- predict(knn_fit, newdata = test)
+    #   
+    #   xx <- confusionMatrix(test_pred, test$Playoff)
+    #   xx
+    #   
+    # })
     
     
     
