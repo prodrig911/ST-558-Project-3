@@ -6,80 +6,86 @@
 library(shiny)
 library(tidyverse)
 library(DT)
+library(caret)
+library(class)
 
-# bbStats <- read_csv("2018-2019 NBA.csv")
-# nba <- bbStats[-31,]
-# playoff <- data.frame(Playoff = ifelse(substring(nba$Team, 
-#                                                  nchar(nba$Team)) == "*", "Y", "N"))
-# 
-# conference <- matrix(c("E", "W", "W", "E", "W", "W", "W", "E", "W",
-#                        "E", "W", "E", "W", "E", "E", "W", "W", "W", 
-#                        "E", "W", "W", "E", "W", "E", "E", "E", "E", 
-#                        "E", "E", "W"), nrow = 30, ncol = 1)
-# 
-# colnames(conference) <- "Conference"
-# nba <- tbl_df(cbind(nba, playoff, conference))
-# nba$Team <- str_replace_all(nba$Team, "[[*]]", "")
-# 
-# # nba$Team <- as.factor(nba$Team)
-# nba$Playoff <- as.factor(nba$Playoff)
-# nba$Conference <- as.factor(nba$Conference)
-# nba <- nba[,-1]
-# nba <- nba[,-2]
-nba <- read_csv("2018-2019 NBA.csv")
+# nba <- read_csv("C:/Users/Phillip/Desktop/NBA/2018-2019 NBA.csv")
+nba2 <- read_csv("NBA.csv")
 
 server <- function(input, output) {
     
-    
-    getData <- reactive({
+    getData1 <- reactive({
       
-        team <- nba %>% 
-                select(Team,`FG%`,`3P`,`3P%`,`2P`,`2P%`,FT,`FT%`,ORB,
-                       DRB,AST,STL,BLK,TOV,PTS) %>% 
-                filter(Team == input$team)
+      if (input$conference == "Both"){
+        teams <- nba2 %>% filter(Season == input$season) %>% select(Team:PTS)
+      } else{
+      teams <- nba2 %>% filter(Season == input$season, Conference == input$conference) %>% select(Team:PTS)
+      }
+    })
+    
+    getData2 <- reactive({
+      
+        team <- nba2 %>% filter(Team == input$team) %>% select(Team:PTS, Season)
     })
     
     output$table1 <- renderDataTable({
       
-        nba %>% select(Team,`FG%`,`3P`,`3P%`,`2P`,`2P%`,FT,`FT%`,ORB,
-                       DRB,AST,STL,BLK,TOV,PTS)
+        getData1()
     })
     
     output$table2 <- renderDataTable({
         
-        getData()
+        getData2()
     })
     
     output$hist <- renderPlot({
         
         a <- input$var
-        b <- pull(nba,a)
+        b <- pull(getData1(),a)
         bins <- seq(min(b),max(b),length.out = input$bins + 1)
         
-        hist(b, main = paste0("Histogram of ", a), xlab = a,
-             col = "cornflowerblue", breaks = bins)
+        if (input$conference == "Both"){
+          
+          hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season"), 
+               xlab = a, col = "cornflowerblue", breaks = bins)
+        } else {
+            hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season ", 
+                                  input$conference, "ern Conference"), xlab = a, col = "cornflowerblue", breaks = bins)
+        }
     })
     
     p <- reactive({
         
         a <- input$var
-        b <- pull(nba,a)
+        b <- pull(getData1(),a)
         bins <- seq(min(b),max(b),length.out = input$bins + 1)
         
-        hist(b, main = paste0("Histogram of ", a), xlab = a,
-             col = "cornflowerblue", breaks = input$bins)
+        if (input$conference == "Both"){
+          
+          hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season"), 
+               xlab = a, col = "cornflowerblue", breaks = bins)
+        } else {
+          hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season ", 
+                                input$conference, "ern Conference"), xlab = a, col = "cornflowerblue", breaks = bins)
+        }
     })
     
     output$download1 <- downloadHandler(
         
         filename = function(){
             
-            paste("2018-2019 NBA Statistics", ".csv", sep = "")
+            if (input$conference == "Both"){
+            
+              paste(input$season, " NBA Statistics", ".csv", sep = "")
+            } else {
+              
+                paste(input$season, " ", input$conference, "ern Conference NBA Statistics", ".csv", sep = "")
+            }
         },
         
         content = function(file){
             
-            write.csv(nba, file)
+            write.csv(getData1(), file)
         }
         
     )
@@ -88,12 +94,18 @@ server <- function(input, output) {
         
         
         filename = function(){
-            
-            paste("histogram", ".png", sep = "")
-        },
+                    
+          if (input$conference == "Both"){
+            paste("Histogram of ", input$var, " for ", input$season, " NBA Season", ".png", sep = "")
+          } else{
+            paste("Histogram of ", input$var, " for ", input$season, " NBA Season ", input$conference,
+                  "ern Conference", ".png", sep = "") 
+          }
+        }
+          ,
         
         content = function(file){
-            
+          
             png(file)
             p()
             dev.off()
@@ -102,18 +114,61 @@ server <- function(input, output) {
     )
     
     
-    output$download3 <- downloadHandler(
+    output$download4 <- downloadHandler(
             
         filename = function(){
 
-            paste(input$team, ".csv", sep = "")
+            paste(input$team, " 2015-2016 to 2018-2019 NBA Statistics", ".csv", sep = "")
         },
 
         content = function(file){
 
-            write.csv(getData(), file)
+            write.csv(getData2(), file)
         }
 
+    )
+    
+    output$plot <- renderPlot({
+     
+     ggplot(getData1(), aes_string(as.name(input$var1) , as.name(input$var2))) + geom_smooth() + geom_point(size = 3.5)
+      
+    })
+    
+    output$plotInfo <- renderText({
+      
+      if(is.null(input$plot_click)) return("")
+      paste0("Coordinates for Plot: x = ", round(input$plot_click$x, 2), ", y = ", round(input$plot_click$y, 2))
+    })
+    
+    output$clickText <- renderText({
+      
+      "Click Anywhere on the Plot for X and Y Coordinates"
+    })
+    
+    output$dataTitle <- renderUI({
+      
+      if (input$conference == "Both"){
+        text <- paste0(input$season, " NBA Season Statistics", sep = "")
+        h3(text)
+      } else{
+        text <- paste0(input$season, " NBA Season ", input$conference, "ern Conference Statistics", sep = "")
+        h3(text)
+      }
+    })
+    
+    output$download3 <- downloadHandler(
+      
+      
+      filename = function(){
+        
+        paste("Variable Plot", ".png", sep = "")
+      },
+      
+      content = function(file){
+        
+        ggsave(file, width = 16, height = 9, dpi = 100)
+      }
+      
     )
     
     
