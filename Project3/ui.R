@@ -12,6 +12,8 @@ nba2$Season <- as.factor(nba2$Season)
 nba2$Conference <- as.factor(nba2$Conference)
 nba2$Team <- as.factor(nba2$Team)
 
+nba3 <- nba2 %>% select(FG:PTS)
+
 ui <- fluidPage(
   
   
@@ -57,21 +59,17 @@ ui <- fluidPage(
       
       conditionalPanel(condition = "input.tabs == '6'",
                        conditionalPanel("input.tabs3 == '1'",
-                      selectInput("numVar", "Number of Variables", choices = seq(4, length(names(nba2[sapply(nba2,is.numeric)]))))),
+                      textOutput("kNN_title"),
+                      br(),
+                      varSelectInput("kNN_var", "Select Variables", nba3, multiple = TRUE),
+                      checkboxInput("checkbox1", "Check box to run kNN"),
+                      textOutput("kNN_warning"),
+                      br(),
+                      br(),
+                      textOutput("accuracy")),
                       conditionalPanel("input.tabs3 == '2'",
                       selectInput("numVar", "Number of Variables", choices = seq(4, length(names(nba2[sapply(nba2, is.numeric)])))),
                       selectInput("numTree", "Number of Trees", choices = c(1,2,3,4))))
-      
-      # conditionalPanel(condition = "input.tabs == '6'",
-      #                  selectInput("model", "Choose Modeling Option", choices = c("kNN", "Boosted Forest")),
-      #                  conditionalPanel(condition = "input.model == 'kNN'",
-      #                                   selectInput("numVar", "Number of Variables", 
-      #                                               choices = seq(4, length(names(nba[sapply(nba, is.numeric)]))))),
-      #                  conditionalPanel(condition = "input.model == 'Boosted Forest'",
-      #                                   selectInput("numVar", "Number of Variables",
-      #                                               choices = seq(4, length(names(nba[sapply(nba, is.numeric)])))),
-      #                                   selectInput("numTrees", "Number of Trees", choices = c(1,2,3)))
-      # )
     ),
     
     mainPanel(
@@ -92,7 +90,7 @@ ui <- fluidPage(
                   tabPanel("PCA", value = "5"),
                   tabPanel("Modeling", value = "6",
                            tabsetPanel(type = "tabs", id = "tabs3",
-                                       tabPanel("kNN", value = '1'),
+                                       tabPanel("kNN", verbatimTextOutput("kNNdata"), value = '1'),
                                        tabPanel("Boosted Tree", value = '2')))
       )
     )
