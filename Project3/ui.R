@@ -59,17 +59,22 @@ ui <- fluidPage(
       
       conditionalPanel(condition = "input.tabs == '6'",
                        conditionalPanel("input.tabs3 == '1'",
-                      textOutput("kNN_title"),
-                      br(),
-                      varSelectInput("kNN_var", "Select Variables", nba3, multiple = TRUE),
-                      checkboxInput("checkbox1", "Check box to run kNN"),
-                      textOutput("kNN_warning"),
-                      br(),
-                      br(),
-                      textOutput("accuracy")),
-                      conditionalPanel("input.tabs3 == '2'",
-                      selectInput("numVar", "Number of Variables", choices = seq(4, length(names(nba2[sapply(nba2, is.numeric)])))),
-                      selectInput("numTree", "Number of Trees", choices = c(1,2,3,4))))
+                          textOutput("kNN_title"),
+                          br(),
+                          varSelectInput("kNN_var", "Select Variables", nba3, multiple = TRUE),
+                          checkboxInput("checkbox1", "Check box to run kNN"),
+                          textOutput("kNN_warning"),
+                          br(),
+                          br(),
+                          textOutput("accuracy")),
+                       conditionalPanel("input.tabs3 == '2'",
+                          textOutput("ensembleTitle"),
+                          br(),
+                          varSelectInput("ensemble_var", "Select Variables", nba3, multiple = TRUE),
+                          br(),
+                          selectInput("learningMethod", "Ensemble Learning Method", choices = c("Random Forests", "Boosted")),
+                          checkboxInput("checkbox2", "Check box to run chosen method"),
+                          textOutput("accuracy2")))
     ),
     
     mainPanel(
@@ -91,7 +96,7 @@ ui <- fluidPage(
                   tabPanel("Modeling", value = "6",
                            tabsetPanel(type = "tabs", id = "tabs3",
                                        tabPanel("kNN", verbatimTextOutput("kNNdata"), value = '1'),
-                                       tabPanel("Boosted Tree", value = '2')))
+                                       tabPanel("Ensemble Learning", verbatimTextOutput("ensembleData"), value = '2')))
       )
     )
   )

@@ -7,7 +7,6 @@ library(shiny)
 library(tidyverse)
 library(DT)
 library(caret)
-library(class)
 
 # nba <- read_csv("C:/Users/Phillip/Desktop/NBA/2018-2019 NBA.csv")
 nba2 <- read_csv("NBA.csv")
@@ -186,7 +185,7 @@ server <- function(input, output) {
 
         trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 
-        knn_fit <- train(Playoff ~ ., data = dataSet, method = "knn",
+        knn_fit <- train(Playoff ~ ., data = train, method = "knn",
                        trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
         knn_fit
 
@@ -210,7 +209,7 @@ server <- function(input, output) {
         
         trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
         
-        knn_fit <- train(Playoff ~ ., data = dataSet, method = "knn",
+        knn_fit <- train(Playoff ~ ., data = train, method = "knn",
                          trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
         knn_fit
         
@@ -233,8 +232,131 @@ server <- function(input, output) {
         b <- (1 - a$overall[1])
         
         if (input$checkbox1){
-          paste("Misclassification rate is ", round(b,4))
+          paste("Misclassification rate is ", round(b,4)) 
         }
+      })
+      
+      output$ensembleTitle <- renderText({
+        paste("Ensemble Learning to Predict Playoff Status")
+      })
+      
+      output$ensembleData <- renderPrint({
+        
+       if (input$learningMethod == "Random Forests"){
+          
+          if (input$checkbox2){
+            
+            set.seed(2)
+            
+            dataSet <- select(nba2, !!!input$ensemble_var)
+            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+            
+            train <- dataSet %>% sample_frac(0.80)
+            test <- anti_join(dataSet, train)
+            
+            trctrl <- trainControl(method = "repeatedcv", number = 10)
+            
+            rf_fit <- train(Playoff ~ ., data = train, method = "rf",
+                             trControl = trctrl, preProcess = c("center", "scale"))
+            
+            test_pred <- predict(rf_fit, newdata = test)
+            
+            confusionMatrix(test_pred, test$Playoff)
+          }
+        } else {
+          
+          if (input$checkbox2){
+            
+            set.seed(2)
+            
+            dataSet <- select(nba2, !!!input$ensemble_var)
+            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+            
+            train <- dataSet %>% sample_frac(0.80)
+            test <- anti_join(dataSet, train)
+            
+            trctrl <- trainControl(method = "repeatedcv", number = 10)
+            
+            boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
+                             trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
+            
+            test_pred <- predict(boost_fit, newdata = test)
+            
+            confusionMatrix(test_pred, test$Playoff)
+          }
+        }
+        
+      })
+      
+      missclass2 <- reactive({
+        
+        if (input$learningMethod == "Random Forests"){
+          
+          if (input$checkbox2){
+            
+            set.seed(2)
+            
+            dataSet <- select(nba2, !!!input$ensemble_var)
+            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+            
+            train <- dataSet %>% sample_frac(0.80)
+            test <- anti_join(dataSet, train)
+            
+            trctrl <- trainControl(method = "repeatedcv", number = 10)
+            
+            rf_fit <- train(Playoff ~ ., data = train, method = "rf",
+                            trControl = trctrl, preProcess = c("center", "scale"))
+            
+            test_pred <- predict(rf_fit, newdata = test)
+            
+            confusionMatrix(test_pred, test$Playoff)
+          }
+        } else {
+          
+          if (input$checkbox2){
+            
+            set.seed(2)
+            
+            dataSet <- select(nba2, !!!input$ensemble_var)
+            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+            
+            train <- dataSet %>% sample_frac(0.80)
+            test <- anti_join(dataSet, train)
+            
+            trctrl <- trainControl(method = "repeatedcv", number = 10)
+            
+            boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
+                               trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
+            
+            test_pred <- predict(boost_fit, newdata = test)
+            
+            confusionMatrix(test_pred, test$Playoff)
+          }
+        }
+        
+      })
+      
+      output$accuracy2 <- renderText({
+        
+        if (input$learningMethod == "Random Forests"){
+          
+          if (input$checkbox2){
+            
+            a <- missclass2()
+            b <- (1 - a$overall[1])
+            paste("Misclassification rate is ", round(b,4))
+            
+          }
+        } else {
+          
+          if (input$checkbox2){
+          
+            a <- missclass2()
+            b <- (1 - a$overall[1])
+            paste("Misclassification rate is ", round(b,4))
+          }
+        }
+        
       })
     
     
