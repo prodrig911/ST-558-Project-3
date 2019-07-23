@@ -25,12 +25,23 @@ server <- function(input, output) {
     
     getData2 <- reactive({
       
-        team <- nba2 %>% filter(Team == input$team) %>% select(Team:PTS, Season)
+        team <- nba2 %>% filter(Team == input$team) %>% select(Season, Team, !!!input$varStats2)
     })
+    
+    getData3 <- reactive({
+      
+      if (input$conference == "Both"){
+        teams <- nba2 %>% filter(Season == input$season) %>% select(Team, !!!input$varStats)
+      } else{
+        teams <- nba2 %>% filter(Season == input$season, Conference == input$conference) %>% select(Team, !!!input$varStats)
+      }
+    })
+    
+    
     
     output$table1 <- renderDataTable({
       
-        getData1()
+        getData3()
     })
     
     output$table2 <- renderDataTable({
@@ -85,7 +96,7 @@ server <- function(input, output) {
         
         content = function(file){
             
-            write.csv(getData1(), file)
+            write.csv(getData3(), file)
         }
         
     )
@@ -130,7 +141,9 @@ server <- function(input, output) {
     
     output$plot <- renderPlot({
      
-     ggplot(getData1(), aes_string(as.name(input$var1) , as.name(input$var2))) + geom_smooth() + geom_point(size = 3.5)
+     ggplot(getData1(), aes_string(as.name(input$var1) , as.name(input$var2))) + 
+        geom_smooth() + geom_point(size = 3.5) + ggtitle(paste("Plot of ", input$var1, " by ", input$var2)) + 
+        theme(plot.title = element_text(hjust = 0.5))
       
     })
     
@@ -161,7 +174,7 @@ server <- function(input, output) {
       
       filename = function(){
         
-        paste("Variable Plot", ".png", sep = "")
+        paste("Plot of ", input$var1, " by ", input$var2, ".png", sep = "")
       },
       
       content = function(file){
@@ -173,48 +186,49 @@ server <- function(input, output) {
     
     output$kNNdata <- renderPrint({
       
-      if (input$checkbox1){
-        
-        set.seed(2)
-        
-        dataSet <- select(nba2, !!!input$kNN_var)
-        dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-        
-        train <- dataSet %>% sample_frac(0.80)
-        test <- anti_join(dataSet, train)
-
-        trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
-
-        knn_fit <- train(Playoff ~ ., data = train, method = "knn",
-                       trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
-        knn_fit
-
-        test_pred <- predict(knn_fit, newdata = test)
-
-        confusionMatrix(test_pred, test$Playoff)
-      }
+      # if (input$checkbox1){
+      #   
+      #   set.seed(2)
+      #   
+      #   dataSet <- select(nba2, !!!input$kNN_var)
+      #   dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+      #   
+      #   train <- dataSet %>% sample_frac(0.80)
+      #   test <- anti_join(dataSet, train)
+      # 
+      #   trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+      # 
+      #   knn_fit <- train(Playoff ~ ., data = train, method = "knn",
+      #                  trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
+      #   knn_fit
+      # 
+      #   test_pred <- predict(knn_fit, newdata = test)
+      # 
+      #   confusionMatrix(test_pred, test$Playoff)
+      # }
+      missclass()
     })
     
     missclass <- reactive({
-      
+
       if (input$checkbox1){
-        
+
         set.seed(2)
-        
+
         dataSet <- select(nba2, !!!input$kNN_var)
         dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-        
+
         train <- dataSet %>% sample_frac(0.80)
         test <- anti_join(dataSet, train)
-        
+
         trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
-        
+
         knn_fit <- train(Playoff ~ ., data = train, method = "knn",
                          trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
         knn_fit
-        
+
         test_pred <- predict(knn_fit, newdata = test)
-        
+
         confusionMatrix(test_pred, test$Playoff)
       }
     })
@@ -224,6 +238,10 @@ server <- function(input, output) {
       })
       
       output$kNN_warning <- renderText({
+        paste("Test may take a few moments")
+      })
+      
+      output$ensemble_warning <- renderText({
         paste("Test may take a few moments")
       })
       
@@ -242,122 +260,124 @@ server <- function(input, output) {
       
       output$ensembleData <- renderPrint({
         
-       if (input$learningMethod == "Random Forests"){
-          
-          if (input$checkbox2){
-            
-            set.seed(2)
-            
-            dataSet <- select(nba2, !!!input$ensemble_var)
-            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-            
-            train <- dataSet %>% sample_frac(0.80)
-            test <- anti_join(dataSet, train)
-            
-            trctrl <- trainControl(method = "repeatedcv", number = 10)
-            
-            rf_fit <- train(Playoff ~ ., data = train, method = "rf",
-                             trControl = trctrl, preProcess = c("center", "scale"))
-            
-            test_pred <- predict(rf_fit, newdata = test)
-            
-            confusionMatrix(test_pred, test$Playoff)
-          }
-        } else {
-          
-          if (input$checkbox2){
-            
-            set.seed(2)
-            
-            dataSet <- select(nba2, !!!input$ensemble_var)
-            dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-            
-            train <- dataSet %>% sample_frac(0.80)
-            test <- anti_join(dataSet, train)
-            
-            trctrl <- trainControl(method = "repeatedcv", number = 10)
-            
-            boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
-                             trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
-            
-            test_pred <- predict(boost_fit, newdata = test)
-            
-            confusionMatrix(test_pred, test$Playoff)
-          }
-        }
-        
+       # if (input$learningMethod == "Random Forests"){
+       # 
+       #    if (input$checkbox2){
+       # 
+       #      set.seed(2)
+       # 
+       #      dataSet <- select(nba2, !!!input$ensemble_var)
+       #      dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+       # 
+       #      train <- dataSet %>% sample_frac(0.80)
+       #      test <- anti_join(dataSet, train)
+       # 
+       #      trctrl <- trainControl(method = "repeatedcv", number = 10)
+       # 
+       #      rf_fit <- train(Playoff ~ ., data = train, method = "rf",
+       #                       trControl = trctrl, preProcess = c("center", "scale"))
+       # 
+       #      test_pred <- predict(rf_fit, newdata = test)
+       # 
+       #      confusionMatrix(test_pred, test$Playoff)
+       #    }
+       #  } else {
+       # 
+       #    if (input$checkbox2){
+       # 
+       #      set.seed(2)
+       # 
+       #      dataSet <- select(nba2, !!!input$ensemble_var)
+       #      dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
+       # 
+       #      train <- dataSet %>% sample_frac(0.80)
+       #      test <- anti_join(dataSet, train)
+       # 
+       #      trctrl <- trainControl(method = "repeatedcv", number = 10)
+       # 
+       #      boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
+       #                       trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
+       # 
+       #      test_pred <- predict(boost_fit, newdata = test)
+       # 
+       #      confusionMatrix(test_pred, test$Playoff)
+       #    }
+       #  }
+        missclass2()
       })
       
       missclass2 <- reactive({
-        
+
         if (input$learningMethod == "Random Forests"){
-          
+
           if (input$checkbox2){
-            
+
             set.seed(2)
-            
+
             dataSet <- select(nba2, !!!input$ensemble_var)
             dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-            
+
             train <- dataSet %>% sample_frac(0.80)
             test <- anti_join(dataSet, train)
-            
-            trctrl <- trainControl(method = "repeatedcv", number = 10)
-            
+
+            trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+
             rf_fit <- train(Playoff ~ ., data = train, method = "rf",
                             trControl = trctrl, preProcess = c("center", "scale"))
-            
+
             test_pred <- predict(rf_fit, newdata = test)
-            
+
             confusionMatrix(test_pred, test$Playoff)
           }
         } else {
-          
+
           if (input$checkbox2){
-            
+
             set.seed(2)
-            
+
             dataSet <- select(nba2, !!!input$ensemble_var)
             dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-            
+
             train <- dataSet %>% sample_frac(0.80)
             test <- anti_join(dataSet, train)
-            
-            trctrl <- trainControl(method = "repeatedcv", number = 10)
-            
+
+            trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+
             boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
                                trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
-            
+
             test_pred <- predict(boost_fit, newdata = test)
-            
+
             confusionMatrix(test_pred, test$Playoff)
           }
         }
-        
+
       })
       
       output$accuracy2 <- renderText({
         
         if (input$learningMethod == "Random Forests"){
-          
+
           if (input$checkbox2){
-            
+
             a <- missclass2()
             b <- (1 - a$overall[1])
             paste("Misclassification rate is ", round(b,4))
-            
+
           }
         } else {
-          
+
           if (input$checkbox2){
-          
+
             a <- missclass2()
             b <- (1 - a$overall[1])
             paste("Misclassification rate is ", round(b,4))
           }
         }
-        
+
       })
+      
+      
     
     
 }
