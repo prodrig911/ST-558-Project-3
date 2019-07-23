@@ -38,7 +38,10 @@ ui <- fluidPage(
                                                     choices = names(nba2[sapply(nba2, is.numeric)])),
                                         sliderInput("bins", "Number of Bins", min = 4, 
                                                     max = 30, value = 13),
-                                        downloadButton("download2", "Save Histogram")),
+                                        downloadButton("download2", "Save Histogram"),
+                                        br(),
+                                        br(),
+                                        verbatimTextOutput("numSummary")),
                        conditionalPanel("input.tabs2 == '2'",
                                         selectInput("var1", "X Variable:",
                                                     choices = names(nba2[sapply(nba2, is.numeric)])),
@@ -50,8 +53,7 @@ ui <- fluidPage(
                                         textOutput("clickText"),
                                         br(),
                                         br(),
-                                        downloadButton("download3", "Save Plot")
-                       )
+                                        downloadButton("download3", "Save Plot"))
       ),
       
       conditionalPanel(condition = "input.tabs == '4'",
@@ -92,8 +94,7 @@ ui <- fluidPage(
                                        tabPanel("Plot", plotOutput("plot", click = "plot_click"), 
                                                 tags$style("#plotInfo {font-size:20px;"),
                                                 div(style = "text-align:center;"),
-                                                textOutput("plotInfo"), value = '2'),
-                                       tabPanel("Numerical Summeries", value = '3'))
+                                                textOutput("plotInfo"), value = '2'))
                   ),
                   tabPanel("Team Data", value = "4", dataTableOutput("table2"),
                            id = "tabselected"),

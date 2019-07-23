@@ -374,6 +374,14 @@ server <- function(input, output) {
             paste("Misclassification rate is ", round(b,4))
           }
         }
+        
+        number_summary <- reactive({
+          summary(select(nba2, input$var))
+        })
+        
+        output$numSummary <- renderPrint({
+          number_summary()
+        })
 
       })
       
