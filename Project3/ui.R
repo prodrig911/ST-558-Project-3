@@ -28,7 +28,7 @@ ui <- fluidPage(
       conditionalPanel(condition = "input.tabs == '2'",
                        selectInput("season", "Season", choices = levels(nba2$Season)),
                        selectInput("conference", "Conference", choices = c("Both", "East", "West")),
-                       varSelectInput("varStats", "Choose Variables to View:", select(nba,FG:Conference), multiple = TRUE),
+                       varSelectInput("varStats", "Choose Variables to View:", select(nba2,FG:Conference), multiple = TRUE),
                        downloadButton("download1", "Download Data")),
       
       conditionalPanel(condition = "input.tabs == '3'",
@@ -58,28 +58,47 @@ ui <- fluidPage(
       
       conditionalPanel(condition = "input.tabs == '4'",
                        selectInput("team", "Team", choices = levels(nba2$Team)),
-                       varSelectInput("varStats2", "Choose Variables to View",  select(nba,FG:Conference), multiple = TRUE),
+                       varSelectInput("varStats2", "Choose Variables to View",  select(nba2,FG:Conference), multiple = TRUE),
                        downloadButton("download4", "Download Team Data")),
+      
+      conditionalPanel(condition = "input.tabs == '5'",
+                       conditionalPanel("input.tabs4 == '1'",
+                                        varSelectInput("pcaVars", "Choose At Least Two Variables for Comparison", 
+                                                       select(nba2,FG:PTS), multiple = TRUE),
+                                        checkboxInput("pcaCheck", "Check Box to View Plot of Linear Combinations"),
+                                        downloadButton("download5", "Download Pairs Plot")),
+                       conditionalPanel("input.tabs4 == '2'",
+                                        varSelectInput("biVars", "Choose Variables for PC Info", 
+                                                       select(nba2,FG:PTS), multiple = TRUE),
+                                        verbatimTextOutput("pcInfo"),
+                                        br(),
+                                        downloadButton("download6", "Download Prop. of Variance Plot"),
+                                        br(),
+                                        br(),
+                                        downloadButton("download7", "Download Cum. Pop of Variance Plot")),
+                       conditionalPanel("input.tabs4 == '3'",
+                                        checkboxInput("biCheck", "Check Box to View Bi-plot"))),
       
       conditionalPanel(condition = "input.tabs == '6'",
                        conditionalPanel("input.tabs3 == '1'",
-                          textOutput("kNN_title"),
-                          br(),
-                          varSelectInput("kNN_var", "Select Variables", nba3, multiple = TRUE),
-                          checkboxInput("checkbox1", "Check box to run kNN"),
-                          textOutput("kNN_warning"),
-                          br(),
-                          br(),
-                          textOutput("accuracy")),
+                                        textOutput("kNN_title"),
+                                        br(),
+                                        varSelectInput("kNN_var", "Select Variables", nba3, multiple = TRUE),
+                                        checkboxInput("checkbox1", "Check box to run kNN"),
+                                        textOutput("kNN_warning"),
+                                        br(),
+                                        br(),
+                                        textOutput("accuracy")),
                        conditionalPanel("input.tabs3 == '2'",
-                          textOutput("ensembleTitle"),
-                          br(),
-                          varSelectInput("ensemble_var", "Select Variables", nba3, multiple = TRUE),
-                          br(),
-                          selectInput("learningMethod", "Ensemble Learning Method", choices = c("Random Forests", "Boosted")),
-                          checkboxInput("checkbox2", "Check box to run chosen method"),
-                          textOutput("ensemble_warning"),
-                          textOutput("accuracy2")))
+                                        textOutput("ensembleTitle"),
+                                        br(),
+                                        varSelectInput("ensemble_var", "Select Variables", nba3, multiple = TRUE),
+                                        br(),
+                                        selectInput("learningMethod", "Ensemble Learning Method", 
+                                                    choices = c("Random Forests", "Boosted")),
+                                        checkboxInput("checkbox2", "Check box to run chosen method"),
+                                        textOutput("ensemble_warning"),
+                                        textOutput("accuracy2")))
     ),
     
     mainPanel(
@@ -99,10 +118,12 @@ ui <- fluidPage(
                   tabPanel("Team Data", value = "4", dataTableOutput("table2"),
                            id = "tabselected"),
                   
-                  tabPanel("Cluster Analysis", value = "5",
+                  tabPanel("PCA Analysis", value = "5",
                            tabsetPanel(type = "tabs", id = "tabs4",
-                                       tabPanel("Cluster", value = '1'),
-                                       tabPanel("Dendogram", plotOutput("dendogram"), value = '2'))),
+                                       tabPanel("Linear Combination Comparison", plotOutput("pairsPlot"), value = '1'),
+                                       tabPanel("PC Info", fluidRow(splitLayout(cellWidths = c("50%","50%"),
+                                                                                plotOutput("scree1"),plotOutput("scree2"))), value = '2'),
+                                       tabPanel("Biplot", plotOutput("biplot"), value = '3'))),
                   
                   tabPanel("Modeling", value = "6",
                            tabsetPanel(type = "tabs", id = "tabs3",
@@ -112,3 +133,5 @@ ui <- fluidPage(
     )
   )
 )
+
+
