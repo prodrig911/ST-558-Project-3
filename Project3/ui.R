@@ -11,6 +11,7 @@ nba2 <- read_csv("NBA.csv")
 nba2$Season <- as.factor(nba2$Season)
 nba2$Conference <- as.factor(nba2$Conference)
 nba2$Team <- as.factor(nba2$Team)
+nba2$Playoff <- as.factor(nba2$Playoff)
 
 nba3 <- nba2 %>% select(FG:PTS)
 
@@ -68,8 +69,8 @@ ui <- fluidPage(
                                         checkboxInput("pcaCheck", "Check Box to View Plot of Linear Combinations"),
                                         downloadButton("download5", "Download Pairs Plot")),
                        conditionalPanel("input.tabs4 == '2'",
-                                        varSelectInput("biVars", "Choose Variables for PC Info", 
-                                                       select(nba2,FG:PTS), multiple = TRUE),
+                                        # varSelectInput("biVars", "Choose Variables for PC Info", 
+                                        #                select(nba2,FG:PTS), multiple = TRUE),
                                         verbatimTextOutput("pcInfo"),
                                         br(),
                                         downloadButton("download6", "Download Prop. of Variance Plot"),
@@ -77,7 +78,15 @@ ui <- fluidPage(
                                         br(),
                                         downloadButton("download7", "Download Cum. Pop of Variance Plot")),
                        conditionalPanel("input.tabs4 == '3'",
-                                        checkboxInput("biCheck", "Check Box to View Bi-plot"))),
+                                        # varSelectInput("biVars2", "Choose Variables for Bi-plot",
+                                        #                select(nba2,FG:PTS), multiple = TRUE),
+                                        numericInput("numPCA1", "Choose PCA Number for x",
+                                                     min = 0, max = 0, value = 0),
+                                        numericInput("numPCA2" ,"Choose PCA Number for y",
+                                                     min = 0, max = 0, value = 0),
+                                        selectInput("biCat", "Choose Variable for Subgroup", 
+                                                    choices = names(nba2[sapply(nba2, is.factor)]))
+                                        )),
       
       conditionalPanel(condition = "input.tabs == '6'",
                        conditionalPanel("input.tabs3 == '1'",
@@ -122,7 +131,7 @@ ui <- fluidPage(
                            tabsetPanel(type = "tabs", id = "tabs4",
                                        tabPanel("Linear Combination Comparison", plotOutput("pairsPlot"), value = '1'),
                                        tabPanel("PC Info", fluidRow(splitLayout(cellWidths = c("50%","50%"),
-                                                                                plotOutput("scree1"),plotOutput("scree2"))), value = '2'),
+                                                                                plotOutput("scree1"), plotOutput("scree2"))), value = '2'),
                                        tabPanel("Biplot", plotOutput("biplot"), value = '3'))),
                   
                   tabPanel("Modeling", value = "6",

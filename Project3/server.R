@@ -12,7 +12,7 @@ library(caret)
 nba2 <- read_csv("NBA.csv")
 nba2$Playoff <- as.factor(nba2$Playoff)
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   getData1 <- reactive({
     
@@ -398,12 +398,17 @@ server <- function(input, output) {
     
   })
   
+  # pc <- reactive({
+  #   sub <- select(nba2, !!!input$biVars)
+  #   PCs <- prcomp(sub, center = TRUE, scale = TRUE)
+  #   PCs
+  # })
+  
   pc <- reactive({
-    sub <- select(nba2, !!!input$biVars)
+    sub <- select(nba2, !!!input$pcaVars)
     PCs <- prcomp(sub, center = TRUE, scale = TRUE)
     PCs
   })
-  
   
   output$pcInfo <- renderPrint({
     pc()
@@ -434,6 +439,25 @@ server <- function(input, output) {
     
     plotScree2()
   })
+  
+  plotBiplot <- function(){
+    
+    PCs <- pc()
+    biplot(PCs, c(input$numPCA1, input$numPCA2))
+    
+  }
+  
+  output$biplot <- renderPlot({
+    
+    plotBiplot()
+  })
+  
+  lengthPCA <- function(){
+    length(select(nba2,!!!input$pcaVars))
+  }
+  
+  observe(updateNumericInput(session, "numPCA1", min = 1, max = lengthPCA(), value = 1))
+  observe(updateNumericInput(session, "numPCA2", min = 1, max = lengthPCA(), value = 2))
   
   output$download5 <- downloadHandler(
     
