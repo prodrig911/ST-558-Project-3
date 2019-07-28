@@ -585,8 +585,33 @@ server <- function(input, output, session) {
           of a specific team. Users can then view a histogram and summary statistics of a 
           variable and view a plot that shows the relationship between two variables. The app 
           allows the user to perform a PCA analysis that includes pairs plots of chosen variables, 
-          PCA information, and bi-plots. And finally, users can use models to predict the playoff 
-          status of NBA teams using k nearest neighbors, random forests, and boosted forest methods. ")
+          PCA information, and bi-plots. Finally, users can build models to predict the playoff 
+          status of NBA teams using k nearest neighbors, random forests, and boosted forests methods. ")
+    
+  })
+  
+  output$modelText1 <- renderText({
+    
+    paste("The goal of using k Nearest Neighbors for classification is to predict class membership, 
+          in this case whether the team makes the playoffs or does not make the playoffs, based on a 
+          combination of variables. The general idea is to use the closest k observations from a training set 
+          to predict the class in a training set. Euclidean distance between predictors is used to decide what 
+          is closest. The proportion of k closest values that make the playoffs (yes) and the proportion of 
+          k closest values that do not make the playoffs (no) is as follows: ")
+    })
+  
+  output$modelText2 <- renderText({
+    
+    paste("Random Forests create multiple trees from bootstrap samples and averages the results. The process does 
+          not use all of the predictors but uses random subsets of predictors for each bootstrap sample. For 
+          the purpose of predicting playoff status, or classification, the size of the subsets are determined by: ")
+    
+  })
+  
+  output$modelText3 <- renderText({
+    
+    paste("In this method, the trees are grown sequentially one tree at a time. Each subsequent tree helps to reduce the 
+          errors produced by the previously trained tree. As each tree is grown, the predictions are updated. ")
     
   })
   
