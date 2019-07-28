@@ -84,8 +84,10 @@ ui <- fluidPage(
                                                      min = 0, max = 0, value = 0),
                                         numericInput("numPCA2" ,"Choose PCA Number for y",
                                                      min = 0, max = 0, value = 0),
-                                        selectInput("biCat", "Choose Variable for Subgroup", 
-                                                    choices = names(nba2[sapply(nba2, is.factor)]))
+                                        selectInput("biCat", "Choose Categorical Varible for Analysis",
+                                                    choices = names(nba2[sapply(nba2, is.factor)])),
+                                        checkboxInput("pcaCheck2", "Check Box for Categorical Variable Analysis"),
+                                        downloadButton("download8", "Download Bi-plot")
                                         )),
       
       conditionalPanel(condition = "input.tabs == '6'",
@@ -112,8 +114,15 @@ ui <- fluidPage(
     
     mainPanel(
       tabsetPanel(type = "tabs", id = "tabs",
-                  tabPanel("About", value = "1", h2("About the App"), p("Some more text"), 
-                           p("still some more text")),
+                  tabPanel("About", value = "1", 
+                           h4("About the App"), 
+                           tags$head(tags$style(HTML("pre { white-space: pre-wrap; word-break: keep-all; }"))), 
+                           textOutput("appText1"),
+                           br(),
+                           uiOutput("link"),
+                           br(),
+                           tags$head(tags$style(HTML("pre { white-space: pre-wrap; word-break: keep-all; }"))), 
+                           textOutput("appText2")),
                   tabPanel("Scroll through Data", value = "2", dataTableOutput("table1"),
                            id = "tabselected"),
                   tabPanel("Data Exploration", value = "3",
@@ -131,7 +140,8 @@ ui <- fluidPage(
                            tabsetPanel(type = "tabs", id = "tabs4",
                                        tabPanel("Linear Combination Comparison", plotOutput("pairsPlot"), value = '1'),
                                        tabPanel("PC Info", fluidRow(splitLayout(cellWidths = c("50%","50%"),
-                                                                                plotOutput("scree1"), plotOutput("scree2"))), value = '2'),
+                                                                                plotOutput("scree1"),
+                                                                                plotOutput("scree2"))), value = '2'),
                                        tabPanel("Biplot", plotOutput("biplot"), value = '3'))),
                   
                   tabPanel("Modeling", value = "6",

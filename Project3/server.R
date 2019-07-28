@@ -398,12 +398,6 @@ server <- function(input, output, session) {
     
   })
   
-  # pc <- reactive({
-  #   sub <- select(nba2, !!!input$biVars)
-  #   PCs <- prcomp(sub, center = TRUE, scale = TRUE)
-  #   PCs
-  # })
-  
   pc <- reactive({
     sub <- select(nba2, !!!input$pcaVars)
     PCs <- prcomp(sub, center = TRUE, scale = TRUE)
@@ -440,11 +434,44 @@ server <- function(input, output, session) {
     plotScree2()
   })
   
+  subData <- function(){
+    select(nba2, !!!input$pcaVars, Season, Playoff, Conference, Team)
+  }
+  
   plotBiplot <- function(){
     
+    sub <- subData()
     PCs <- pc()
-    biplot(PCs, c(input$numPCA1, input$numPCA2))
     
+    biplot(PCs, xlabs = rep("+", nrow(subData())), c(input$numPCA1, input$numPCA2))
+
+    if (input$pcaCheck2){
+    
+      if (input$biCat == "Team"){
+      
+        biplot(PCs, xlabs = sub$Team, c(input$numPCA1, input$numPCA2))
+      
+      } 
+    
+      else if (input$biCat == "Playoff"){
+      
+        biplot(PCs, xlabs = sub$Playoff, c(input$numPCA1, input$numPCA2))
+      
+      }
+    
+      else if (input$biCat == "Season"){
+      
+        biplot(PCs, xlabs = sub$Season, c(input$numPCA1, input$numPCA2))
+      
+      }
+    
+      else{
+      
+        biplot(PCs, xlabs = sub$Conference, c(input$numPCA1, input$numPCA2))
+      
+      
+      }
+    }
   }
   
   output$biplot <- renderPlot({
@@ -512,5 +539,56 @@ server <- function(input, output, session) {
     }
     
   )
+  
+  output$download8 <- downloadHandler(
+    
+    filename = function(){
+      
+      paste("Bi-plot of PCA ", input$numPCA1, " and PCA ", input$numPCA2, ".png", sep = "")
+      
+    }
+    ,
+    
+    content = function(file){
+      
+      png(file, width = 600, height = 500)
+      plotBiplot()
+      dev.off()
+    }
+    
+  )
+  
+  url <- a("basketball-reference.com", href = "https://www.basketball-reference.com/")
+  
+  output$link <- renderUI({
+    tagList("", url)
+  })
+  
+  output$appText1 <- renderText({
+    
+    paste("This app uses NBA statistics curated from the website basketball-reference.com. 
+          The statistics are from all 30 teams and include statistics from the 2015-2016, 
+          2016-2017, 2017-2018, and 2018-2019 NBA seasons. The statistics include the following: 
+          team name, field goals (FG), field goal attempts (FGA), field goal percentage (FG%), 
+          three pointers (3P), three point attempts (3PA), three point percentage (3P%), 
+          two pointers (2P), two point attempts (2PA), two point percentage (2P%), free throws (FT), 
+          free throw attempts (FTA), free throw percentage (FT%), offensive rebounds (ORB), 
+          defensive rebounds (DRB), total rebounds (TRB), assists (AST), blocks (BLK), 
+          turnovers (TOV), personal fouls (PF), points (PTS), playoff status (Playoff), 
+          conference (Conference). The link to the website is below.")
+  })
+  
+  output$appText2 <- renderText({
+    
+    paste("The app allows users to choose a season and then choose which statistics 
+          to view from all 30 teams or by conference. Users can also view the statistics 
+          of a specific team. Users can then view a histogram and summary statistics of a 
+          variable and view a plot that shows the relationship between two variables. The app 
+          allows the user to perform a PCA analysis that includes pairs plots of chosen variables, 
+          PCA information, and bi-plots. And finally, users can use models to predict the playoff 
+          status of NBA teams using k nearest neighbors, random forests, and boosted forest methods. ")
+    
+  })
+  
   
 }
