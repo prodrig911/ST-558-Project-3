@@ -376,45 +376,78 @@ server <- function(input, output, session) {
     }
   })
     
-    number_summary <- reactive({
-      summary(select(nba2, input$var))
-    })
+  number_summary <- reactive({
+    summary(select(nba2, input$var))
+  })
     
-    output$numSummary <- renderPrint({
-      number_summary()
-    })
+  output$numSummary <- renderPrint({
+    number_summary()
+  })
     
   pairsData <- function(){
-      
-      sub <- select(nba2, !!!input$pcaVars)
-      pairs(sub, cex = 0.75)
+    sub <- select(nba2, !!!input$pcaVars)
+    pairs(sub, cex = 0.75)
   }
+    
+  output$pairsWarning <- renderText({
+    if (length(select(nba2, !!!input$pcaVars)) <= 1){
+      "Choose at least two variables!"
+    }
+  })
+  
+  # output$downloadWarning1 <- renderUI({
+  #   
+  #   if (length(select(nba2, !!!input$pcaVars)) <= 1){
+  #     if (input$download5){
+  #       text <- paste("Must choose at least two variables to download!")
+  #       h4(text)
+  #     } 
+  #   }
+  # })
+  
+  output$screeWarning <- renderText({
+    if (length(select(nba2, !!!input$pcaVars)) <= 1){
+      "Choose at least two variables from the comparison tab!"
+    }
+  })
+  
+  output$biWarning <- renderText({
+    if (length(select(nba2, !!!input$pcaVars)) <= 1){
+      "Choose at least two variables from the comparison tab!"
+    }
+  })
   
   output$pairsPlot <- renderPlot({
-     
-    if (input$pcaCheck){
-          pairsData()
+      
+    if (length(select(nba2, !!!input$pcaVars)) >= 2){
+        
+        pairsData()
     }
     
   })
   
   pc <- reactive({
+      
     sub <- select(nba2, !!!input$pcaVars)
     PCs <- prcomp(sub, center = TRUE, scale = TRUE)
     PCs
   })
-  
+    
   output$pcInfo <- renderPrint({
-    pc()
+      
+    if (length(select(nba2, !!!input$pcaVars)) >= 2){
+        pc()
+    }
   })
-  
+    
   plotScree1 <- function(){
-    
+      
     PCs <- pc()
-    
+      
     plot(PCs$sdev^2/sum(PCs$sdev^2), xlab = "Principal Component", 
-         ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
+           ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
   }
+  
   
   plotScree2 <- function(){
     
@@ -425,13 +458,15 @@ server <- function(input, output, session) {
   }
   
   output$scree1 <- renderPlot({
-    
-    plotScree1()
+    if (length(select(nba2, !!!input$pcaVars)) >= 2){
+      plotScree1()
+    }
   })
   
   output$scree2 <- renderPlot({
-    
-    plotScree2()
+    if (length(select(nba2, !!!input$pcaVars)) >= 2){
+      plotScree2()
+    }
   })
   
   subData <- function(){
@@ -468,15 +503,16 @@ server <- function(input, output, session) {
       else{
       
         biplot(PCs, xlabs = sub$Conference, c(input$numPCA1, input$numPCA2))
-      
-      
       }
     }
+  
   }
   
   output$biplot <- renderPlot({
     
-    plotBiplot()
+    if (length(select(nba2, !!!input$pcaVars)) >= 2){
+      plotBiplot()
+    }
   })
   
   lengthPCA <- function(){
@@ -488,19 +524,21 @@ server <- function(input, output, session) {
   
   output$download5 <- downloadHandler(
     
-    filename = function(){
+    # if (length(select(nba2, !!!input$pcaVars)) >= 2)
+    
+      filename = function(){
       
-      paste("Pairs Plot", ".png", sep = "")
+        paste("Pairs Plot", ".png", sep = "")
       
-    }
+      }
     ,
     
-    content = function(file){
+      content = function(file){
 
-      png(file, width = 600, height = 500)
-      pairsData()
-      dev.off()
-    }
+        png(file, width = 600, height = 500)
+        pairsData()
+        dev.off()
+      }
     
   )
   
@@ -598,7 +636,7 @@ server <- function(input, output, session) {
           to predict the class in a training set. Euclidean distance between predictors is used to decide what 
           is closest. The proportion of k closest values that make the playoffs (yes) and the proportion of 
           k closest values that do not make the playoffs (no) is as follows: ")
-    })
+  })
   
   output$modelText2 <- renderText({
     

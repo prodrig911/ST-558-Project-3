@@ -54,8 +54,7 @@ ui <- fluidPage(
                                         textOutput("clickText"),
                                         br(),
                                         br(),
-                                        downloadButton("download3", "Save Plot"))
-      ),
+                                        downloadButton("download3", "Save Plot"))),
       
       conditionalPanel(condition = "input.tabs == '4'",
                        selectInput("team", "Team", choices = levels(nba2$Team)),
@@ -66,11 +65,9 @@ ui <- fluidPage(
                        conditionalPanel("input.tabs4 == '1'",
                                         varSelectInput("pcaVars", "Choose At Least Two Variables for Comparison", 
                                                        select(nba2,FG:PTS), multiple = TRUE),
-                                        checkboxInput("pcaCheck", "Check Box to View Plot of Linear Combinations"),
                                         downloadButton("download5", "Download Pairs Plot")),
+                                        # uiOutput("downloadWarning1")),
                        conditionalPanel("input.tabs4 == '2'",
-                                        # varSelectInput("biVars", "Choose Variables for PC Info", 
-                                        #                select(nba2,FG:PTS), multiple = TRUE),
                                         verbatimTextOutput("pcInfo"),
                                         br(),
                                         downloadButton("download6", "Download Prop. of Variance Plot"),
@@ -78,8 +75,6 @@ ui <- fluidPage(
                                         br(),
                                         downloadButton("download7", "Download Cum. Pop of Variance Plot")),
                        conditionalPanel("input.tabs4 == '3'",
-                                        # varSelectInput("biVars2", "Choose Variables for Bi-plot",
-                                        #                select(nba2,FG:PTS), multiple = TRUE),
                                         numericInput("numPCA1", "Choose PCA Number for x",
                                                      min = 0, max = 0, value = 0),
                                         numericInput("numPCA2" ,"Choose PCA Number for y",
@@ -87,8 +82,7 @@ ui <- fluidPage(
                                         selectInput("biCat", "Choose Categorical Varible for Analysis",
                                                     choices = names(nba2[sapply(nba2, is.factor)])),
                                         checkboxInput("pcaCheck2", "Check Box for Categorical Variable Analysis"),
-                                        downloadButton("download8", "Download Bi-plot")
-                                        )),
+                                        downloadButton("download8", "Download Bi-plot"))),
       
       conditionalPanel(condition = "input.tabs == '6'",
                        conditionalPanel("input.tabs3 == '1'",
@@ -109,12 +103,8 @@ ui <- fluidPage(
                                                     choices = c("Random Forests", "Boosted")),
                                         checkboxInput("checkbox2", "Check box to run chosen method"),
                                         textOutput("ensemble_warning"),
-                                        textOutput("accuracy2")))
-    ),
-    
-    
-    
-    mainPanel(
+                                        textOutput("accuracy2")))),
+  mainPanel(
       tabsetPanel(type = "tabs", id = "tabs",
                   tabPanel("About", value = "1",
                            tabsetPanel(type = "tabs", id = "tabs5",
@@ -142,24 +132,31 @@ ui <- fluidPage(
                   
                   tabPanel("Scroll through Data", value = "2", dataTableOutput("table1"),
                            id = "tabselected"),
+                  
                   tabPanel("Data Exploration", value = "3",
                            tabsetPanel(type = "tabs", id = "tabs2",
                                        tabPanel("Histogram", plotOutput("hist"), value = '1'),
                                        tabPanel("Plot", plotOutput("plot", click = "plot_click"), 
                                                 tags$style("#plotInfo {font-size:20px;"),
                                                 div(style = "text-align:center;"),
-                                                textOutput("plotInfo"), value = '2'))
-                  ),
+                                                textOutput("plotInfo"), value = '2'))),
+                  
                   tabPanel("Team Data", value = "4", dataTableOutput("table2"),
                            id = "tabselected"),
                   
                   tabPanel("PCA Analysis", value = "5",
                            tabsetPanel(type = "tabs", id = "tabs4",
-                                       tabPanel("Linear Combination Comparison", plotOutput("pairsPlot"), value = '1'),
-                                       tabPanel("PC Info", fluidRow(splitLayout(cellWidths = c("50%","50%"),
-                                                                                plotOutput("scree1"),
-                                                                                plotOutput("scree2"))), value = '2'),
-                                       tabPanel("Biplot", plotOutput("biplot"), value = '3'))),
+                                       tabPanel("Linear Combination Comparison",
+                                                textOutput("pairsWarning"),
+                                                plotOutput("pairsPlot"),
+                                                value = '1'),
+                                       tabPanel("PC Info", 
+                                                textOutput("screeWarning"),
+                                                fluidRow(splitLayout(cellWidths = c("50%","50%"), 
+                                                                     plotOutput("scree1"),
+                                                                     plotOutput("scree2"))), value = '2'),
+                                       tabPanel("Biplot", textOutput("biWarning"),
+                                                plotOutput("biplot"), value = '3'))),
                   
                   tabPanel("Modeling", value = "6",
                            tabsetPanel(type = "tabs", id = "tabs3",
