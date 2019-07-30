@@ -232,7 +232,7 @@ server <- function(input, output, session) {
       train <- dataSet %>% sample_frac(0.80)
       test <- anti_join(dataSet, train)
       
-      trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+      trctrl <- trainControl(method = "repeatedcv", number = input$kFolds, repeats = input$kRepeats)
       
       knn_fit <- train(Playoff ~ ., data = train, method = "knn",
                        trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
@@ -332,7 +332,7 @@ server <- function(input, output, session) {
         train <- dataSet %>% sample_frac(0.80)
         test <- anti_join(dataSet, train)
         
-        trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+        trctrl <- trainControl(method = "repeatedcv", number = input$eFolds, repeats = input$eRepeats)
         
         rf_fit <- train(Playoff ~ ., data = train, method = "rf",
                         trControl = trctrl, preProcess = c("center", "scale"))
@@ -353,7 +353,7 @@ server <- function(input, output, session) {
         train <- dataSet %>% sample_frac(0.80)
         test <- anti_join(dataSet, train)
         
-        trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+        trctrl <- trainControl(method = "repeatedcv", number = input$folds, repeats = input$repeats)
         
         boost_fit <- train(Playoff ~ ., data = train, method = "gbm",
                            trControl = trctrl, preProcess = c("center", "scale"), verbose = FALSE)
