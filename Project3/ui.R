@@ -54,7 +54,12 @@ ui <- fluidPage(
                                         textOutput("clickText"),
                                         br(),
                                         br(),
-                                        downloadButton("download3", "Save Plot"))),
+                                        downloadButton("download3", "Save Plot")),
+                       conditionalPanel("input.tabs2 == '3'",
+                                        varSelectInput("varInfo", "Choose variables to view pairs info", 
+                                                       select(nba2,FG:PTS),
+                                                       multiple = TRUE),
+                                        downloadButton("download9", "Save Pairs Plot"))),
       
       conditionalPanel(condition = "input.tabs == '4'",
                        selectInput("team", "Team", choices = levels(nba2$Team)),
@@ -139,7 +144,8 @@ ui <- fluidPage(
                                        tabPanel("Plot", plotOutput("plot", click = "plot_click"), 
                                                 tags$style("#plotInfo {font-size:20px;"),
                                                 div(style = "text-align:center;"),
-                                                textOutput("plotInfo"), value = '2'))),
+                                                textOutput("plotInfo"), value = '2'),
+                                       tabPanel("Pairs Info", plotOutput("varPairs"), value = '3'))),
                   
                   tabPanel("Team Data", value = "4", dataTableOutput("table2"),
                            id = "tabselected"),

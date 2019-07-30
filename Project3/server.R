@@ -7,6 +7,7 @@ library(shiny)
 library(tidyverse)
 library(DT)
 library(caret)
+library(GGally)
 
 # nba <- read_csv("C:/Users/Phillip/Desktop/NBA/2018-2019 NBA.csv")
 nba2 <- read_csv("NBA.csv")
@@ -652,6 +653,38 @@ server <- function(input, output, session) {
           errors produced by the previously trained tree. As each tree is grown, the predictions are updated. ")
     
   })
+  
+  output$varPairs <- renderPlot({
+    
+    if (length(select(nba2, !!!input$varInfo)) >= 2){
+      
+      ggpairs(select(nba2, !!!input$varInfo), aes(color = nba2$Playoff, alpha = 0.4))
+      
+    }
+    
+  })
+  
+  output$download9 <- downloadHandler(
+    
+    
+    filename = function(){
+      
+      if (input$conference == "Both"){
+        
+        paste("Pairs Plot of ", input$season, " NBA Statistics", ".png", sep = "")
+      } else {
+        
+        paste("Pairs Plot of ", input$season, " ", input$conference, "ern Conference NBA Statistics", ".png", sep = "")
+      }
+      
+    },
+    
+    content = function(file){
+      
+      ggsave(file, width = 16, height = 9, dpi = 100)
+    }
+    
+  )
   
   
 }
