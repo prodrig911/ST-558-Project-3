@@ -38,6 +38,17 @@ server <- function(input, output, session) {
     }
   })
   
+  getData4 <- reactive({
+    
+    if (input$conference == "Both"){
+      teams <- nba2 %>% filter(Season == input$season)
+    } else{
+      teams <- nba2 %>% filter(Season == input$season, Conference == input$conference)
+    }
+    
+  })
+  
+  
   output$table1 <- renderDataTable({
     
     getData3()
@@ -622,10 +633,11 @@ server <- function(input, output, session) {
     paste("The app allows users to choose a season and then choose which statistics 
           to view from all 30 teams or by conference. Users can also view the statistics 
           of a specific team. Users can then view a histogram and summary statistics of a 
-          variable and view a plot that shows the relationship between two variables. The app 
-          allows the user to perform a PCA analysis that includes pairs plots of chosen variables, 
-          PCA information, and bi-plots. Finally, users can build models to predict the playoff 
-          status of NBA teams using k nearest neighbors, random forests, and boosted forests methods. ")
+          variable, view a plot that shows the relationship between two variables, and view 
+          a pairs plot of the chosen season and conference. The app allows the user to perform a 
+          PCA analysis that includes pairs plots of chosen variables, PCA information, and bi-plots. 
+          Finally, users can build models to predict the playoff status of NBA teams using k nearest 
+          neighbors, random forests, and boosted forests methods. ")
     
   })
   
@@ -658,7 +670,7 @@ server <- function(input, output, session) {
     
     if (length(select(nba2, !!!input$varInfo)) >= 2){
       
-      ggpairs(select(nba2, !!!input$varInfo), aes(color = nba2$Playoff, alpha = 0.4))
+      ggpairs(select(getData4(), !!!input$varInfo, Playoff), aes(color = Playoff, alpha = 0.4))
       
     }
     
