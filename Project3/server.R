@@ -398,7 +398,8 @@ server <- function(input, output, session) {
     
   pairsData <- function(){
     sub <- select(nba2, !!!input$pcaVars)
-    pairs(sub, cex = 0.75)
+    # pairs(sub, cex = 0.75)
+    ggpairs(sub)
   }
     
   output$pairsWarning <- renderText({
@@ -547,9 +548,11 @@ server <- function(input, output, session) {
     
       content = function(file){
 
-        png(file, width = 600, height = 500)
-        pairsData()
-        dev.off()
+        # png(file, width = 600, height = 500)
+        # pairsData()
+        # dev.off()
+        ggsave(file, width = 16, height = 9, dpi = 100)
+        
       }
     
   )
