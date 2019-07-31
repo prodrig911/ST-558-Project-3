@@ -9,7 +9,6 @@ library(DT)
 library(caret)
 library(GGally)
 
-# nba <- read_csv("C:/Users/Phillip/Desktop/NBA/2018-2019 NBA.csv")
 nba2 <- read_csv("NBA.csv")
 nba2$Playoff <- as.factor(nba2$Playoff)
 
@@ -61,18 +60,6 @@ server <- function(input, output, session) {
   
   output$hist <- renderPlot({
     
-    # a <- input$var
-    # b <- pull(getData1(),a)
-    # bins <- seq(min(b),max(b),length.out = input$bins + 1)
-    # 
-    # if (input$conference == "Both"){
-    #   
-    #   hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season"), 
-    #        xlab = a, col = "cornflowerblue", breaks = bins)
-    # } else {
-    #   hist(b, main = paste0("Histogram of ", a, " for ", input$season, " NBA Season ", 
-    #                         input$conference, "ern Conference"), xlab = a, col = "cornflowerblue", breaks = bins)
-    # }
     p()
   })
   
@@ -197,26 +184,6 @@ server <- function(input, output, session) {
   
   output$kNNdata <- renderPrint({
     
-    # if (input$checkbox1){
-    #   
-    #   set.seed(2)
-    #   
-    #   dataSet <- select(nba2, !!!input$kNN_var)
-    #   dataSet <- cbind(dataSet, Playoff = nba2$Playoff)
-    #   
-    #   train <- dataSet %>% sample_frac(0.80)
-    #   test <- anti_join(dataSet, train)
-    # 
-    #   trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
-    # 
-    #   knn_fit <- train(Playoff ~ ., data = train, method = "knn",
-    #                  trControl = trctrl, preProcess = c("center", "scale"), tuneGrid = data.frame(k = 2:30))
-    #   knn_fit
-    # 
-    #   test_pred <- predict(knn_fit, newdata = test)
-    # 
-    #   confusionMatrix(test_pred, test$Playoff)
-    # }
     missclass()
   })
   
@@ -397,38 +364,10 @@ server <- function(input, output, session) {
   })
     
   pairsData <- function(){
+    
     sub <- select(nba2, !!!input$pcaVars)
-    # pairs(sub, cex = 0.75)
     ggpairs(sub)
   }
-    
-  output$pairsWarning <- renderText({
-    if (length(select(nba2, !!!input$pcaVars)) <= 1){
-      "Choose at least two variables!"
-    }
-  })
-  
-  # output$downloadWarning1 <- renderUI({
-  #   
-  #   if (length(select(nba2, !!!input$pcaVars)) <= 1){
-  #     if (input$download5){
-  #       text <- paste("Must choose at least two variables to download!")
-  #       h4(text)
-  #     } 
-  #   }
-  # })
-  
-  output$screeWarning <- renderText({
-    if (length(select(nba2, !!!input$pcaVars)) <= 1){
-      "Choose at least two variables from the comparison tab!"
-    }
-  })
-  
-  output$biWarning <- renderText({
-    if (length(select(nba2, !!!input$pcaVars)) <= 1){
-      "Choose at least two variables from the comparison tab!"
-    }
-  })
   
   output$pairsPlot <- renderPlot({
       
@@ -537,8 +476,6 @@ server <- function(input, output, session) {
   
   output$download5 <- downloadHandler(
     
-    # if (length(select(nba2, !!!input$pcaVars)) >= 2)
-    
       filename = function(){
       
         paste("Pairs Plot", ".png", sep = "")
@@ -547,10 +484,7 @@ server <- function(input, output, session) {
     ,
     
       content = function(file){
-
-        # png(file, width = 600, height = 500)
-        # pairsData()
-        # dev.off()
+        
         ggsave(file, width = 16, height = 9, dpi = 100)
         
       }
@@ -635,8 +569,8 @@ server <- function(input, output, session) {
     
     paste("The app allows users to choose a season and then choose which statistics 
           to view from all 30 teams or by conference. Users can also view the statistics 
-          of a specific team. Users can then view a histogram and summary statistics of a 
-          variable, view a plot that shows the relationship between two variables, and view 
+          of a specific team for all four seasons. Users can then view a histogram and summary 
+          statistics of a variable, view a plot that shows the relationship between two variables, and view 
           a pairs plot of the chosen season and conference. The app allows the user to perform a 
           PCA analysis that includes pairs plots of chosen variables, PCA information, and bi-plots. 
           Finally, users can build models to predict the playoff status of NBA teams using k nearest 
@@ -681,7 +615,6 @@ server <- function(input, output, session) {
   
   output$download9 <- downloadHandler(
     
-    
     filename = function(){
       
       if (input$conference == "Both"){
@@ -689,7 +622,8 @@ server <- function(input, output, session) {
         paste("Pairs Plot of ", input$season, " NBA Statistics", ".png", sep = "")
       } else {
         
-        paste("Pairs Plot of ", input$season, " ", input$conference, "ern Conference NBA Statistics", ".png", sep = "")
+        paste("Pairs Plot of ", input$season, " ", input$conference, 
+              "ern Conference NBA Statistics", ".png", sep = "")
       }
       
     },
@@ -701,5 +635,30 @@ server <- function(input, output, session) {
     
   )
   
+  pcaVariables <- reactive({
+    
+    if (length(select(nba2, !!!input$pcaVars)) <= 1){
+      
+      paste("")
+      
+    } else if (length(select(nba2, !!!input$pcaVars)) == 2){
+      
+      a <- paste(names(select(nba2, !!!input$pcaVars)))
+      paste("PCA Info for the variables ", a[1], " and ", a[2], ".")
+      
+    } else{
+        
+        variables <- names(select(nba2, !!!input$pcaVars))
+        xx <- length(variables)
+        b <- paste(variables[1:(xx-2)], collapse = ", ")
+        c <- paste(b, variables[xx-1], sep = ", ")
+        d <- paste(c, ", and ", variables[xx], ".", sep = "")
+        paste("PCA Info for the variables", d)
+    }
+  })
+  
+  output$infoText <- renderText({
+    pcaVariables()
+  })
   
 }
